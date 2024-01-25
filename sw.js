@@ -4,16 +4,20 @@ self.addEventListener("install", (event) => {
   console.log("server worker installed");
   self.skipWaiting();
 
-  // install assets in cache of client's browser in first load page
-  caches.open("pwa-cache").then((cache) => {
-    //Added signle files in cache with "add" method
-    // cache.add('./js/app.js')
-    // cache.add('./style.css')
+  event.waitUntil(
+    // install assets in cache of client's browser in first load page
+    caches.open("pwa-cache").then((cache) => {
+      //Added signle files in cache with "add" method
+      // cache.add('./js/app.js')
+      // cache.add('./style.css')
 
-    //Added All files assets in cache with "addAll" method
-    cache.addAll(["/", "./js/app.js", "./style.css"]);
-    console.log("cache done for js and css files");
-  });
+      //if i want dont run next evenet we use "waitUntil" method
+
+      //Added All files assets in cache with "addAll" method
+      cache.addAll(["/", "./js/app.js", "./style.css"]);
+      console.log("cache done for js and css files");
+    })
+  );
 });
 
 //2. Activated SW on Client's Browser
