@@ -1,6 +1,7 @@
-const cacheVersion = 3;
+const cacheVersion = 3.2;
 const activeCaches = {
-  "pwa-cache": `pwa-${cacheVersion}V`,
+  "pwa-static-cache": `pwa-static-${cacheVersion}V`,
+  "pwa-dynamic-cache": `pwa-dynamic-${cacheVersion}V`,
 };
 // ------- LIFECYCLE  -----------
 //1. Install SW on Client's Browser
@@ -10,7 +11,7 @@ self.addEventListener("install", (event) => {
 
   event.waitUntil(
     // install assets in cache of client's browser in first load page
-    caches.open(activeCaches["pwa-cache"]).then((cache) => {
+    caches.open(activeCaches["pwa-static-cache"]).then((cache) => {
       //Added signle files in cache with "add" method
       // cache.add('./js/app.js')
       // cache.add('./style.css')
@@ -32,11 +33,13 @@ self.addEventListener("activate", (event) => {
   const activeCacheNames = Object.values(activeCaches);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
-      return Promise.all(cacheNames.forEach((cacheName) => {
-        if(!activeCacheNames.includes(cacheName)){
-          return caches.delete(cacheName);
-        }
-      }));
+      return Promise.all(
+        cacheNames.forEach((cacheName) => {
+          if (!activeCacheNames.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
     })
   );
 });
@@ -50,13 +53,26 @@ self.addEventListener("fetch", (e) => {
   //e.respondWith(fetch(e.request));
 
   //check if assets exist in cache retrun them if not exist then fetch that from server
+  //1- CACHE STRATEGY: First Cache , Second Network
   e.respondWith(
+    // 1- First load data from cache
     caches.match(e.request).then((response) => {
       if (response) {
         return response;
       } else {
-        return fetch(e.request);
+        //2- Second load data from network server
+        // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
+        return fetch(e.request).then((serverRes) => {
+          caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
+            cache.put(e.request, serverRes.clone());
+            return serverRes;
+          });
+        });
       }
     })
   );
+  //2- CACHE STRATEGY: only network
+  e.respondWith(fetch(e.request));
+  //3- CACHE STRATEGY: only cache
+  e.respondWith(caches.match(e.request))
 });
