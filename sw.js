@@ -1,4 +1,4 @@
-const cacheVersion = 3.2;
+const cacheVersion = 1;
 const activeCaches = {
   "pwa-static-cache": `pwa-static-${cacheVersion}V`,
   "pwa-dynamic-cache": `pwa-dynamic-${cacheVersion}V`,
@@ -54,25 +54,41 @@ self.addEventListener("fetch", (e) => {
 
   //check if assets exist in cache retrun them if not exist then fetch that from server
   //1- CACHE STRATEGY: First Cache , Second Network
-  e.respondWith(
-    // 1- First load data from cache
-    caches.match(e.request).then((response) => {
-      if (response) {
-        return response;
-      } else {
-        //2- Second load data from network server
-        // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
-        return fetch(e.request).then((serverRes) => {
-          caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
-            cache.put(e.request, serverRes.clone());
-            return serverRes;
-          });
-        });
-      }
-    })
-  );
+  // e.respondWith(
+  //   // 1- First load data from cache
+  //   caches.match(e.request).then((response) => {
+  //     if (response) {
+  //       return response;
+  //     } else {
+  //       //2- Second load data from network server
+  //       // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
+  //       return fetch(e.request).then((serverRes) => {
+  //         caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
+  //           cache.put(e.request, serverRes.clone());
+  //           return serverRes;
+  //         });
+  //       });
+  //     }
+  //   })
+  // );
+
   //2- CACHE STRATEGY: only network
-  e.respondWith(fetch(e.request));
+  //e.respondWith(fetch(e.request));
+
   //3- CACHE STRATEGY: only cache
-  e.respondWith(caches.match(e.request))
+  //e.respondWith(caches.match(e.request))
+
+  //4- CACHE STRATEGY: First Network, Second Cache
+  return e.respondWith(
+    fetch(e.request)
+      .then((response) => {
+        return caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
+          cache.put(e.request.url, response.clone());
+          return response;
+        });
+      })
+      .catch((err) => {
+        return caches.match(e.request.url);
+      })
+  );
 });
