@@ -1,3 +1,17 @@
+//UTILS
+const limitCache = (key, size) => {
+  caches.open(key).then((cahce) => {
+    cahce.keys().then((keys) => {
+      //if assets biggerthan our size then remove other assets from first level
+      if (keys.length > size) {
+        //recursive function call 'limitCache' is in own function again
+        cahce.delete(keys[0]).then(limitCache(key, size));
+      }
+    });
+  });
+};
+
+//SERVICE WORKER
 const cacheVersion = 1;
 const activeCaches = {
   "pwa-static-cache": `pwa-static-${cacheVersion}V`,
@@ -66,6 +80,7 @@ self.addEventListener("fetch", (e) => {
           .then((serverRes) => {
             caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
               cache.put(e.request, serverRes.clone());
+              //limitCache(activeCaches["pwa-dynamic-cache"], 3)
               return serverRes;
             });
           })
