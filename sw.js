@@ -19,7 +19,7 @@ self.addEventListener("install", (event) => {
       //if i want dont run next evenet we use "waitUntil" method
 
       //Added All files assets in cache with "addAll" method
-      cache.addAll(["/", "./js/app.js", "./style.css"]);
+      cache.addAll(["/", "/fallback.html", "./js/app.js", "./style.css"]);
       console.log("cache done for js and css files");
     })
   );
@@ -54,23 +54,28 @@ self.addEventListener("fetch", (e) => {
 
   //check if assets exist in cache retrun them if not exist then fetch that from server
   //1- CACHE STRATEGY: First Cache , Second Network
-  // e.respondWith(
-  //   // 1- First load data from cache
-  //   caches.match(e.request).then((response) => {
-  //     if (response) {
-  //       return response;
-  //     } else {
-  //       //2- Second load data from network server
-  //       // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
-  //       return fetch(e.request).then((serverRes) => {
-  //         caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
-  //           cache.put(e.request, serverRes.clone());
-  //           return serverRes;
-  //         });
-  //       });
-  //     }
-  //   })
-  // );
+  e.respondWith(
+    // 1- First load data from cache
+    caches.match(e.request).then((response) => {
+      if (response) {
+        return response;
+      } else {
+        //2- Second load data from network server
+        // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
+        return fetch(e.request)
+          .then((serverRes) => {
+            caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
+              cache.put(e.request, serverRes.clone());
+              return serverRes;
+            });
+          })
+          .catch((err) => {
+            //if user was offline (even server) and user want see other pages that not cached then show fallback.html page
+            return caches.match("/fallback.html");
+          });
+      }
+    })
+  );
 
   //2- CACHE STRATEGY: only network
   //e.respondWith(fetch(e.request));
@@ -79,16 +84,16 @@ self.addEventListener("fetch", (e) => {
   //e.respondWith(caches.match(e.request))
 
   //4- CACHE STRATEGY: First Network, Second Cache
-  return e.respondWith(
-    fetch(e.request)
-      .then((response) => {
-        return caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
-          cache.put(e.request.url, response.clone());
-          return response;
-        });
-      })
-      .catch((err) => {
-        return caches.match(e.request.url);
-      })
-  );
+  // return e.respondWith(
+  //   fetch(e.request)
+  //     .then((response) => {
+  //       return caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
+  //         cache.put(e.request.url, response.clone());
+  //         return response;
+  //       });
+  //     })
+  //     .catch((err) => {
+  //       return caches.match(e.request.url);
+  //     })
+  // );
 });
