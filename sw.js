@@ -12,7 +12,7 @@ const limitCache = (key, size) => {
 };
 
 //SERVICE WORKER
-const cacheVersion = 1;
+const cacheVersion = 2;
 const activeCaches = {
   "pwa-static-cache": `pwa-static-${cacheVersion}V`,
   "pwa-dynamic-cache": `pwa-dynamic-${cacheVersion}V`,
@@ -61,36 +61,46 @@ self.addEventListener("activate", (event) => {
 
 // Get All Assets that linked to my project and runner per my filesystem
 self.addEventListener("fetch", (e) => {
-  console.log("fetch events: ", e.request);
+  const urls = ["https://fakestoreapi.com/products?limit=4"];
+  //get api data always from network but other assets from cache and then server
+  if (urls.includes(e.requset.url)) {
+    return e.respondWith(
+      fetch(e.request).then((res) => {
+        return res;
+      })
+    );
+  } else {
+    //if assets not exist in cache then get assets from backend
+    //e.respondWith(fetch(e.request));
 
-  //if assets not exist in cache then get assets from backend
-  //e.respondWith(fetch(e.request));
-
-  //check if assets exist in cache retrun them if not exist then fetch that from server
-  //1- CACHE STRATEGY: First Cache , Second Network
-  e.respondWith(
-    // 1- First load data from cache
-    caches.match(e.request).then((response) => {
-      if (response) {
-        return response;
-      } else {
-        //2- Second load data from network server
-        // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
-        return fetch(e.request)
-          .then((serverRes) => {
-            caches.open(activeCaches["pwa-dynamic-cache"]).then((cache) => {
-              cache.put(e.request, serverRes.clone());
-              //limitCache(activeCaches["pwa-dynamic-cache"], 3)
-              return serverRes;
+    //check if assets exist in cache retrun them if not exist then fetch that from server
+    //1- CACHE STRATEGY: First Cache , Second Network
+    e.respondWith(
+      // 1- First load data from cache
+      caches.match(e.request).then((response) => {
+        if (response) {
+          return response;
+        } else {
+          //2- Second load data from network server
+          // add dynamic assetes to cache like dynamic files as cdns or something else from other servers
+          return fetch(e.request)
+            .then((serverRes) => {
+              return caches
+                .open(activeCaches["pwa-dynamic-cache"])
+                .then((cache) => {
+                  cache.put(e.request, serverRes.clone());
+                  //limitCache(activeCaches["pwa-dynamic-cache"], 3)
+                  return serverRes;
+                });
+            })
+            .catch((err) => {
+              //if user was offline (even server) and user want see other pages that not cached then show fallback.html page
+              return caches.match("/fallback.html");
             });
-          })
-          .catch((err) => {
-            //if user was offline (even server) and user want see other pages that not cached then show fallback.html page
-            return caches.match("/fallback.html");
-          });
-      }
-    })
-  );
+        }
+      })
+    );
+  }
 
   //2- CACHE STRATEGY: only network
   //e.respondWith(fetch(e.request));
