@@ -122,3 +122,18 @@ self.addEventListener("fetch", (e) => {
   //     })
   // );
 });
+
+// Background Sync Manager for get data in offline mode and set when user online
+// Excute this function accord all sw register in app.js like "add-newn-course"
+self.addEventListener("sync", (event) => {
+  if (event.tag === "add-new-course") {
+    //post course
+    createNewCourse();
+  } else if (event.tag === "reomve-course") {
+    //delete course
+  }
+});
+
+function createNewCourse() {
+  console.log("create course successfully");
+}
