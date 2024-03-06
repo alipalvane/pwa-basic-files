@@ -42,7 +42,25 @@ const addNewCourse = () => {
 const NotifPermissionState = async () => {
   if (navigator.permissions) {
     let result = await navigator.permissions.query({ name: "notifications" });
-    return result.state
+    return result.state;
+  }
+};
+
+const showNotification = () => {
+  // WAY 1
+  // with this WAY we dont cant access to notifications in PWA or service worker
+  new Notification("Notification Title", {
+    //options of notifications for 'actions/ body/ image / vibrate and ......'
+    body: "Notification Body",
+  });
+
+  //WAY 2
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.ready.then((sw) => {
+      sw.showNotification("Notification Title from SW (PWA)", {
+        body: "notification body",
+      });
+    });
   }
 };
 
@@ -50,6 +68,7 @@ const getNotificationPermission = async () => {
   // WAY 1 :
   Notification.requestPermission().then((result) => {
     if (result === "granted") {
+      showNotification();
       console.log("user accept permission");
     } else if (result === "denied") {
       console.log("user dont accept permission");
@@ -59,11 +78,10 @@ const getNotificationPermission = async () => {
   });
 
   // WAY 2 :
-  const notificationPermission = Notification.requestPermission();
+  //const notificationPermission = Notification.requestPermission();
 
   // WAY 3 :
-  const notifPermission = await NotifPermissionState();
-  console.log(notifPermission);
+  //const notifPermission = await NotifPermissionState();
 };
 
 addNewCourseBtn.addEventListener("click", addNewCourse);
