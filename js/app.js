@@ -39,9 +39,37 @@ const addNewCourse = () => {
   }
 };
 
+const NotifPermissionState = async () => {
+  if (navigator.permissions) {
+    let result = await navigator.permissions.query({ name: "notifications" });
+    return result.state
+  }
+};
+
+const getNotificationPermission = async () => {
+  // WAY 1 :
+  Notification.requestPermission().then((result) => {
+    if (result === "granted") {
+      console.log("user accept permission");
+    } else if (result === "denied") {
+      console.log("user dont accept permission");
+    }
+    //if result was 'granted' => as ✅
+    //if result was 'denied' => as ❌
+  });
+
+  // WAY 2 :
+  const notificationPermission = Notification.requestPermission();
+
+  // WAY 3 :
+  const notifPermission = await NotifPermissionState();
+  console.log(notifPermission);
+};
+
 addNewCourseBtn.addEventListener("click", addNewCourse);
 
 window.addEventListener("load", async () => {
   const courses = await fetchCourses();
+  getNotificationPermission();
   createUi(courses);
 });
