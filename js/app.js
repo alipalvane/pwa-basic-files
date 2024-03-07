@@ -49,16 +49,24 @@ const NotifPermissionState = async () => {
 const showNotification = () => {
   // WAY 1
   // with this WAY we dont cant access to notifications in PWA or service worker
-  new Notification("Notification Title", {
-    //options of notifications for 'actions/ body/ image / vibrate and ......'
-    body: "Notification Body",
-  });
+  // new Notification("Notification Title", {
+  //   //options of notifications for 'actions/ body/ image / vibrate and ......'
+  //   body: "Notification Body",
+  // });
 
   //WAY 2
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then((sw) => {
       sw.showNotification("Notification Title from SW (PWA)", {
         body: "notification body",
+        title: "title of notif",
+        tag: "notif-message",
+        vibrate: [100, 50, 100],
+        //for controls of actions we declear functions in service worker 'sw.js'
+        actions: [
+          { action: "confirm", title: "Accept" },
+          { action: "cancel", title: "Cancel" },
+        ],
       });
     });
   }

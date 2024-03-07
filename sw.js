@@ -134,6 +134,27 @@ self.addEventListener("sync", (event) => {
   }
 });
 
+// Create actions for notifications
+self.addEventListener("notificationclick", (event) => {
+  //event give to us actions and other properties
+  const action = event.action;
+  const notification = event.notification;
+
+  if (action === "confirm") {
+    console.log("onfirm button clicked");
+  }
+  if (action === "cancel") {
+    console.log("cancel button clicked");
+  }
+  //close notif after click on buttons
+  notification.close();
+});
+
+// Excute this function when hide nofitication is hide
+self.addEventListener("notificationclose", (event) => {
+  console.log("notification closed");
+});
+
 function createNewCourse() {
   console.log("create course successfully");
 }
