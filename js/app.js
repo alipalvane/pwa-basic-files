@@ -1,3 +1,8 @@
+const webpush = require('web-push');
+const {urlBase64ToUint8Array} = require("./baseToUnit")
+
+const vapidKeys = webpush.generateVAPIDKeys();
+
 const addNewCourseBtn = document.querySelector(".add-course");
 
 if ("serviceWorker" in navigator) {
@@ -72,11 +77,40 @@ const showNotification = () => {
   }
 };
 
+// If we want know that user give to us access notifications or not access use this
+const getCurrentPushSub = async () =>{
+  const sw = await navigator.serviceWorker.ready
+  return await sw.pushManager.getSubscription()
+
+}
+
+// PUSH NOTIFICATION
+// first we must create Push Subscription
+const getPushSubscription = async () => {
+  if ("serviceWorker" in navigator) {
+    const sw = await navigator.serviceWorker.ready;
+    const pushSubscription = await sw.pushManager.subscribe({
+      userVisibleOnly: true,
+      //for security of notification from server for local work we can use web-push library instead backend key
+      // and we nedd privateKey that we must give that to backend developer
+      // we use library Base64ToArray because only accepet Buffer
+      applicationServerKey: urlBase64ToUint8Array(vapidKeys.publicKey),
+    });
+  } else {
+    console.log("Your Browser not support Push Notification");
+  }
+};
+
+// NOTIFICATION
 const getNotificationPermission = async () => {
   // WAY 1 :
   Notification.requestPermission().then((result) => {
     if (result === "granted") {
       showNotification();
+      //handle access push notification in user access control
+      getPushSubscription();
+      //say to us that user give to us access to notif or not from past time
+      getCurrentPushSub()
       console.log("user accept permission");
     } else if (result === "denied") {
       console.log("user dont accept permission");
