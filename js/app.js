@@ -4,6 +4,9 @@ const { urlBase64ToUint8Array } = require("./baseToUnit");
 const vapidKeys = webpush.generateVAPIDKeys();
 
 const addNewCourseBtn = document.querySelector(".add-course");
+const video = document.querySelector(".video");
+const canvasPhoto = document.querySelector(".canvas-photo");
+const takePhoto = document.querySelector(".take-photo");
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
@@ -149,10 +152,25 @@ const getNotificationPermission = async () => {
   //const notifPermission = await NotifPermissionState();
 };
 
+const getMediaPermission = () => {
+  if ("getUserMedia" in navigator) {
+    navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: true,
+      })
+      .then((stream) => (video.srcObject = stream))
+      .catch((err) => console.log(err));
+  } else {
+    console.log("your device not supported stream media");
+  }
+};
+
 addNewCourseBtn.addEventListener("click", addNewCourse);
 
 window.addEventListener("load", async () => {
   const courses = await fetchCourses();
   getNotificationPermission();
   createUi(courses);
+  getMediaPermission();
 });
