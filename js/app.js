@@ -1,5 +1,5 @@
-const webpush = require('web-push');
-const {urlBase64ToUint8Array} = require("./baseToUnit")
+const webpush = require("web-push");
+const { urlBase64ToUint8Array } = require("./baseToUnit");
 
 const vapidKeys = webpush.generateVAPIDKeys();
 
@@ -77,12 +77,28 @@ const showNotification = () => {
   }
 };
 
-// If we want know that user give to us access notifications or not access use this
-const getCurrentPushSub = async () =>{
-  const sw = await navigator.serviceWorker.ready
-  return await sw.pushManager.getSubscription()
+const sendPushSubscriptionToServer = async (pushSub) => {
+  const res = await fetch(
+    `this url is from backend and backend developer give this to us`,
+    {
+      //backed developer say to us : POST/GET/PUT/DELETE
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(pushSub),
+    }
+  );
 
-}
+  const data = await res.json();
+  log(data);
+};
+
+// If we want know that user give to us access notifications or not access use this
+const getCurrentPushSub = async () => {
+  const sw = await navigator.serviceWorker.ready;
+  return await sw.pushManager.getSubscription();
+};
 
 // PUSH NOTIFICATION
 // first we must create Push Subscription
@@ -96,6 +112,7 @@ const getPushSubscription = async () => {
       // we use library Base64ToArray because only accepet Buffer
       applicationServerKey: urlBase64ToUint8Array(vapidKeys.publicKey),
     });
+    return pushSubscription;
   } else {
     console.log("Your Browser not support Push Notification");
   }
@@ -107,10 +124,16 @@ const getNotificationPermission = async () => {
   Notification.requestPermission().then((result) => {
     if (result === "granted") {
       showNotification();
-      //handle access push notification in user access control
-      getPushSubscription();
+
       //say to us that user give to us access to notif or not from past time
-      getCurrentPushSub()
+      getCurrentPushSub().then((curretPushSubscription) => {
+        if (!curretPushSubscription) {
+          //handle access push notification in user access control
+          getPushSubscription().then((pushSubscription) => {
+            sendPushSubscriptionToServer(pushSubscription);
+          });
+        }
+      });
       console.log("user accept permission");
     } else if (result === "denied") {
       console.log("user dont accept permission");

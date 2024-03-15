@@ -155,6 +155,11 @@ self.addEventListener("notificationclose", (event) => {
   console.log("notification closed");
 });
 
+//get message from server for Push Notifications handle
+self.addEventListener("push", (event) => {
+  console.log(event);
+});
+
 function createNewCourse() {
   console.log("create course successfully");
 }
