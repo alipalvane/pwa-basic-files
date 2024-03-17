@@ -166,7 +166,22 @@ const getMediaPermission = () => {
   }
 };
 
+const handleTakePhoto = () => {
+  const context = canvasPhoto.getContext("2d");
+  canvasPhoto.style.display = "block";
+  video.style.display = "none";
+  takePhoto.style.display = "none";
+  context.drawImage(video, 0, 0, canvasPhoto.width, 520);
+
+  //cancell stream and video camera from loptop or device
+  video.srcObject.getVideoTracks().forEach((track) => {
+    console.log(track);
+    track.stop();
+  });
+};
+
 addNewCourseBtn.addEventListener("click", addNewCourse);
+takePhoto.addEventListener("click", handleTakePhoto);
 
 window.addEventListener("load", async () => {
   const courses = await fetchCourses();
