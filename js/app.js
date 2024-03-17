@@ -180,6 +180,20 @@ const handleTakePhoto = () => {
   });
 };
 
+// check user device for tool for get video of webcam
+const checkWebcam = async () => {
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  let hasDevice = false;
+  devices.forEach((device) => {
+    //kind has audio and video input and output from user device
+    if (device.kind === "videoinput") {
+      hasDevice = true;
+    }
+  });
+
+  return hasDevice;
+};
+
 addNewCourseBtn.addEventListener("click", addNewCourse);
 takePhoto.addEventListener("click", handleTakePhoto);
 
@@ -187,5 +201,9 @@ window.addEventListener("load", async () => {
   const courses = await fetchCourses();
   getNotificationPermission();
   createUi(courses);
-  getMediaPermission();
+  const hasAccessCamera = await checkWebcam();
+  // if my device has camera then run this function else dont run for camera access
+  if (hasAccessCamera) {
+    getMediaPermission();
+  }
 });
