@@ -7,6 +7,7 @@ const addNewCourseBtn = document.querySelector(".add-course");
 const video = document.querySelector(".video");
 const canvasPhoto = document.querySelector(".canvas-photo");
 const takePhoto = document.querySelector(".take-photo");
+const showLocationBtn = document.querySelector(".show-location");
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker
@@ -194,8 +195,32 @@ const checkWebcam = async () => {
   return hasDevice;
 };
 
+const geoSuccess = (position) => {
+  console.log(position.coords.latitude, position.coords.longitude);
+};
+
+const geoError = (error) => {
+  //we have 4 type error with code : 0,1,2,3
+  // 0 : unkonwn error
+  // 1 : user dont access location in their device
+  // 2 : user location not found
+  // 3 : timeout error
+  console.log(error);
+};
+
+//get location of user
+const handleGetLocation = () => {
+  if ("geolocation" in navigator) {
+    //below function get 2 callback function
+    //first callback is => if get user location was successfully
+    //second callback is => if get user location was not successfully and not access to location user
+    navigator.geolocation.getCurrentPosition(geoSuccess, geoError);
+  }
+};
+
 addNewCourseBtn.addEventListener("click", addNewCourse);
 takePhoto.addEventListener("click", handleTakePhoto);
+showLocationBtn.addEventListener("click", handleGetLocation);
 
 window.addEventListener("load", async () => {
   const courses = await fetchCourses();
