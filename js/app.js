@@ -209,6 +209,8 @@ const geoError = (error) => {
 };
 
 //get location of user
+//We are banned and geo-location with code doesn't work properly for us,
+//that's why we have to use another external library called geocode.
 const handleGetLocation = () => {
   if ("geolocation" in navigator) {
     //below function get 2 callback function
